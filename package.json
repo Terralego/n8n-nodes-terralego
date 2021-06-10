@@ -1,16 +1,12 @@
 {
-    "name": "n8n-nodes-starter",
+    "name": "n8n-nodes-terralego",
     "version": "0.1.0",
     "description": "Example starter module for custom n8n nodes.",
     "license": "SEE LICENSE IN LICENSE.md",
     "homepage": "https://n8n.io",
     "author": {
-        "name": "Jan Oberhauser",
-        "email": "jan@n8n.io"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/n8n-io/n8n-nodes-starter.git"
+        "name": "Jérémie Pardou",
+        "email": "jpardou@makina-corpus.com"
     },
     "main": "index.js",
     "scripts": {
@@ -25,10 +21,10 @@
     ],
     "n8n": {
         "credentials": [
-            "dist/credentials/ExampleCredentials.credentials.js"
+            "dist/credentials/BaserowApi.credentials.js"
         ],
         "nodes": [
-            "dist/nodes/ExampleNode/ExampleNode.node.js"
+            "dist/nodes/Baserow/Baserow.node.js"
         ]
     },
     "devDependencies": {
@@ -38,13 +34,13 @@
         "@types/request-promise-native": "^1.0.17",
         "gulp": "^4.0.0",
         "jest": "^24.9.0",
-        "n8n-workflow": "^0.11.0",
+        "n8n-workflow": "^0.60.0",
         "ts-jest": "^24.0.2",
         "tslint": "^5.17.0",
         "typescript": "~3.5.2"
     },
     "dependencies": {
-        "n8n-core": "^0.10.0"
+        "n8n-core": "^0.73.0"
     },
     "jest": {
         "transform": {

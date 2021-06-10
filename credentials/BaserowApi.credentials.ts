@@ -4,22 +4,16 @@ import {
 } from 'n8n-workflow';
 
 
-export class ExampleCredentials implements ICredentialType {
-	name = 'exampleCredentials';
-	displayName = 'Example Credentials';
+export class BaserowApi implements ICredentialType {
+	name = 'baserowApi';
+	displayName = 'Baserow API';
 	properties = [
 		// The credentials to get from user and save encrypted.
 		// Properties can be defined exactly in the same way
 		// as node properties.
 		{
-			displayName: 'User',
-			name: 'user',
-			type: 'string' as NodePropertyTypes,
-			default: '',
-		},
-		{
-			displayName: 'Access Token',
-			name: 'accessToken',
+			displayName: 'API Token',
+			name: 'apiToken',
 			type: 'string' as NodePropertyTypes,
 			default: '',
 		},
