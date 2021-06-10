@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-terralego",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "n8n nodes that are used in Terralego context.",
     "license": "SEE LICENSE IN LICENSE.md",
     "homepage": "https://github.com/Terralego/n8n-nodes-terralego",
@@ -13,7 +13,7 @@
         "dev": "npm run watch",
         "build": "tsc && gulp",
         "tslint": "tslint -p tsconfig.json -c tslint.json",
-	"version": "git changelog -n -t $npm_package_version && git add CHANGELOG.md",
+        "version": "git changelog -n -t $npm_package_version && git add CHANGELOG.md",
         "watch": "tsc --watch",
         "test": "jest"
     },
