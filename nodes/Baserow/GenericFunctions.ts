@@ -55,7 +55,7 @@ export async function apiRequest(this: IHookFunctions | IExecuteFunctions | ILoa
 		method,
 		body,
 		qs: query,
-		uri: uri || `${host}/${endpoint}`,
+		uri: uri || `${host}${endpoint}`,
 		useQuerystring: false,
 		json: true,
 	};

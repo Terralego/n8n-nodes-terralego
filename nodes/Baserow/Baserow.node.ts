@@ -15,7 +15,7 @@ export class Baserow implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Baserow',
 		name: 'baserow',
-		icon: 'file:icon.svg',
+		icon: 'file:baserow.svg',
 		group: ['output'],
 		version: 1,
 		description: 'Create, update, and delete row in Baserow',
@@ -45,33 +45,33 @@ export class Baserow implements INodeType {
 				name: 'operation',
 				type: 'options',
 				options: [
-					{
+					/*{
 						name: 'List',
 						value: 'list',
 						description: 'List rows of a table',
-					},
+					},*/
 					{
 						name: 'Get',
 						value: 'get',
-						description: 'Get from a table',
+						description: 'Get a row',
 					},
 					{
 						name: 'Create',
 						value: 'create',
-						description: 'Create a new row in a table',
+						description: 'Create a new row',
 					},
 					{
 						name: 'Update',
 						value: 'update',
-						description: 'Update row in a table',
+						description: 'Update a row',
 					},
 					{
 						name: 'Delete',
 						value: 'delete',
-						description: 'Delete row from a table',
+						description: 'Delete a row',
 					},
 				],
-				default: 'read',
+				default: 'get',
 				description: 'The operation to perform.',
 			},
 			{
@@ -158,10 +158,34 @@ export class Baserow implements INodeType {
 
 		const table = encodeURI(this.getNodeParameter('table', 0) as string);
 
+		if (operation === "get") {
+			requestMethod = "GET";
+			let rowId: string;
+			for (let i = 0; i < items.length; i++) {
+				rowId = this.getNodeParameter('rowId', i) as string;
+				endpoint = `/api/database/rows/table/${table}/${rowId}/`;
+				responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
+				returnData.push(responseData);
+			}
+		}
+
 		if (operation === "create") {
 			requestMethod = "POST";
 			endpoint = `/api/database/rows/table/${table}/`;
 			for (let i = 0; i < items.length; i++) {
+				Object.assign(body, items[i].json);
+				responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
+				returnData.push(responseData);
+			}
+		}
+
+
+		if (operation === "update") {
+			requestMethod = "PATCH";
+			let rowId: string;
+			for (let i = 0; i < items.length; i++) {
+				rowId = this.getNodeParameter('rowId', i) as string;
+				endpoint = `/api/database/rows/table/${table}/${rowId}/`;
 				Object.assign(body, items[i].json);
 				responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
 				returnData.push(responseData);
