@@ -69,8 +69,6 @@ export async function apiRequest(this: IHookFunctions | IExecuteFunctions | ILoa
 	if (Object.keys(body).length === 0) {
 		delete options.body;
   }
-  
-    console.log("options", options);
 
 	try {
 		return await this.helpers.request!(options);
