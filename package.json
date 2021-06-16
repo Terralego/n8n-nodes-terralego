@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-terralego",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "n8n nodes that are used in Terralego context.",
     "license": "SEE LICENSE IN LICENSE.md",
     "homepage": "https://github.com/Terralego/n8n-nodes-terralego",
