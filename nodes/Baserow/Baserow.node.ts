@@ -8,7 +8,7 @@ import {
   INodeTypeDescription,
 } from 'n8n-workflow';
 
-import { apiRequest } from './GenericFunctions';
+import { apiRequest, apiRequestAllItems } from './GenericFunctions';
 
 type Mapping = { [x: string]: string };
 
@@ -46,11 +46,11 @@ export class Baserow implements INodeType {
         name: 'operation',
         type: 'options',
         options: [
-          /*{
-						name: 'List',
-						value: 'list',
-						description: 'List rows of a table',
-					},*/
+          {
+            name: 'List',
+            value: 'list',
+            description: 'List rows of a table',
+          },
           {
             name: 'Get',
             value: 'get',
@@ -72,7 +72,7 @@ export class Baserow implements INodeType {
             description: 'Delete a row',
           },
         ],
-        default: 'get',
+        default: 'list',
         description: 'The operation to perform.',
       },
       {
@@ -135,7 +135,34 @@ export class Baserow implements INodeType {
       },
 
       // ----------------------------------
-      //         Optionnal fields
+      //         Optionnal fields for all except list
+      // ----------------------------------
+
+      {
+        displayName: 'Additional Options',
+        name: 'additionalOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+          show: {
+            operation: ['get', 'create', 'update', 'delete'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Disable field auto mapping',
+            name: 'disableAutoMapping',
+            type: 'boolean',
+            default: true,
+            description:
+              'Disable field name translation from `field_xxx` to given column name.',
+          },
+        ],
+      },
+
+      // ----------------------------------
+      //         Optionnal fields for list
       // ----------------------------------
 
       {
@@ -152,6 +179,202 @@ export class Baserow implements INodeType {
             default: true,
             description:
               'Disable field name translation from `field_xxx` to given column name.',
+          },
+          {
+            displayName: 'Limit result',
+            name: 'limit',
+            type: 'number',
+            default: 0,
+            description: 'Limit the result count.',
+          },
+          {
+            displayName: 'Query size',
+            name: 'size',
+            type: 'number',
+            default: 100,
+            description: 'Size of each paginated queries.',
+          },
+          {
+            displayName: 'Search',
+            name: 'search',
+            type: 'string',
+            default: '',
+            description:
+              'If provided, only rows with data that matches the search are returned.',
+          },
+          {
+            displayName: 'Order',
+            name: 'order',
+            placeholder: 'Add order',
+            description: 'Define how the result rows should be ordered',
+            type: 'fixedCollection',
+            typeOptions: {
+              multipleValues: true,
+            },
+            default: {},
+            options: [
+              {
+                name: 'fields',
+                displayName: 'Field',
+                values: [
+                  {
+                    displayName: 'Field',
+                    name: 'field',
+                    type: 'string',
+                    default: '',
+                    description: 'Field name to order.',
+                  },
+                  {
+                    displayName: 'Direction',
+                    name: 'direction',
+                    type: 'options',
+                    options: [
+                      {
+                        name: 'ASC',
+                        value: '',
+                        description: 'Sort in ascending order (small -> large)',
+                      },
+                      {
+                        name: 'DESC',
+                        value: '-',
+                        description:
+                          'Sort in descending order (large -> small)',
+                      },
+                    ],
+                    default: '',
+                    description: 'The sort direction.',
+                  },
+                ],
+              },
+            ],
+          },
+
+          {
+            displayName: 'Filter',
+            name: 'filter',
+            placeholder: 'Add filter',
+            description: 'Define how the result rows should be filtered',
+            type: 'fixedCollection',
+            typeOptions: {
+              multipleValues: true,
+            },
+            default: {},
+            options: [
+              {
+                name: 'fields',
+                displayName: 'Field',
+                values: [
+                  {
+                    displayName: 'Field',
+                    name: 'field',
+                    type: 'string',
+                    default: '',
+                    description: 'Field name to order.',
+                  },
+                  {
+                    displayName: 'Filter',
+                    name: 'operator',
+                    type: 'options',
+                    options: [
+                      {
+                        name: 'Equal',
+                        value: 'equal',
+                        description: 'Field is value',
+                      },
+                      {
+                        name: 'Not equal',
+                        value: 'not_equal',
+                        description: 'Field is not value',
+                      },
+                      {
+                        name: 'Date equal',
+                        value: 'date_equal',
+                        description: "Field is date 'YYY-MM-DD'",
+                      },
+                      {
+                        name: 'Date not equal',
+                        value: 'date_not_equal',
+                        description: "Field is not date 'YYY-MM-DD'",
+                      },
+                      {
+                        name: 'Date equals today',
+                        value: 'date_equals_today',
+                        description: 'Field is today string value',
+                      },
+                      {
+                        name: 'Date equals month',
+                        value: 'date_equals_month',
+                        description: 'Field in this month string value',
+                      },
+                      {
+                        name: 'Date equals year',
+                        value: 'date_equals_year',
+                        description: 'Field in this year string value',
+                      },
+                      {
+                        name: 'Contains',
+                        value: 'contains',
+                        description: 'Field contains value',
+                      },
+                      {
+                        name: 'Filename contains',
+                        value: 'filename_contains',
+                        description: 'Field filename conains value',
+                      },
+                      {
+                        name: 'Contains not',
+                        value: 'contains_not',
+                        description: 'Field not contains value',
+                      },
+                      {
+                        name: 'Higher than',
+                        value: 'higher_than',
+                        description: 'Field is higher than value',
+                      },
+                      {
+                        name: 'Lower than',
+                        value: 'lower_than',
+                        description: 'Field is lower than value',
+                      },
+                      {
+                        name: 'Single select equal',
+                        value: 'single_select_equal',
+                        description: 'Field selected option is value',
+                      },
+                      {
+                        name: 'Single select not equal',
+                        value: 'single_select_not_equal',
+                        description: 'Field selected option is not value',
+                      },
+                      {
+                        name: 'Is true',
+                        value: 'boolean',
+                        description: 'Boolean field is true',
+                      },
+                      {
+                        name: 'Is empty',
+                        value: 'empty',
+                        description: 'Field is empty',
+                      },
+                      {
+                        name: 'Not emtpy',
+                        value: 'not_empty',
+                        description: 'Field is not empty',
+                      },
+                    ],
+                    default: '',
+                    description: 'The comparaison operator.',
+                  },
+                  {
+                    displayName: 'Value',
+                    name: 'value',
+                    type: 'string',
+                    default: '',
+                    description: 'The value to compare.',
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -203,6 +426,90 @@ export class Baserow implements INodeType {
           field.name,
         ])
       );
+    }
+
+    if (operation === 'list') {
+      requestMethod = 'GET';
+      endpoint = `/api/database/rows/table/${table}/`;
+
+      const additionalOptions = this.getNodeParameter(
+        'additionalOptions',
+        0,
+        {}
+      ) as IDataObject;
+
+      let limit = 0;
+
+      // Parse additionnal options
+      for (const key of Object.keys(additionalOptions)) {
+        switch (key) {
+          case 'order':
+            // Add order
+            const order = additionalOptions.order as IDataObject;
+            if (order && order.fields) {
+              qs['order_by'] = (
+                order.fields as Array<{ field: string; direction: string }>
+              )
+                .map(
+                  ({ field, direction }) =>
+                    `${direction}${
+                      disableAutoMapping ? field : nameToField[field] || field
+                    }`
+                )
+                .join(',');
+            }
+            break;
+          case 'filter':
+            // Add filter
+            const filter = additionalOptions.filter as IDataObject;
+            if (filter && filter.fields) {
+              (
+                filter.fields as Array<{
+                  field: string;
+                  operator: string;
+                  value: string;
+                }>
+              ).forEach(({ field, operator, value }) => {
+                qs[
+                  `filter__${
+                    disableAutoMapping ? field : nameToField[field] || field
+                  }__${operator}`
+                ] = value;
+              });
+            }
+            break;
+          case 'limit':
+            // Define limit
+            limit = additionalOptions.limit as number;
+            break;
+          default:
+            qs[key] = additionalOptions[key];
+        }
+      }
+
+      for (let i = 0; i < items.length; i++) {
+        responseData = await apiRequestAllItems.call(
+          this,
+          requestMethod,
+          endpoint,
+          body,
+          qs,
+          limit
+        );
+
+        if (!disableAutoMapping) {
+          responseData = responseData.map((row: IDataObject) =>
+            Object.fromEntries(
+              Object.entries(row).map(([key, value]) => [
+                fieldToName[key] || key,
+                value as GenericValue,
+              ])
+            )
+          );
+        }
+
+        returnData.push.apply(returnData, responseData);
+      }
     }
 
     if (operation === 'get') {
