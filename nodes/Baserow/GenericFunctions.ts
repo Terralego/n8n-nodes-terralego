@@ -1,29 +1,28 @@
 import {
-  IExecuteFunctions,
-  IHookFunctions,
-  ILoadOptionsFunctions,
+	IExecuteFunctions,
+	IHookFunctions,
+	ILoadOptionsFunctions
 } from 'n8n-core';
 
 import { OptionsWithUri } from 'request';
 
 import {
-  IDataObject,
-  NodeApiError,
-  NodeOperationError,
-  IPollFunctions,
+	IDataObject,
+	IPollFunctions,
+	NodeApiError,
+	NodeOperationError
 } from 'n8n-workflow';
-import { print } from 'util';
 
 interface IAttachment {
-  url: string;
-  filename: string;
-  type: string;
+	url: string;
+	filename: string;
+	type: string;
 }
 
 export interface IRecord {
-  fields: {
-    [key: string]: string | IAttachment[];
-  };
+	fields: {
+		[key: string]: string | IAttachment[];
+	};
 }
 
 /**
@@ -33,61 +32,61 @@ export interface IRecord {
  * @param {string} method
  * @param {string} url
  * @param {object} body
- * @returns {Promise<any>}
+ * @returns {Promise<any>} call result
  */
 export async function apiRequest(
-  this:
-    | IHookFunctions
-    | IExecuteFunctions
-    | ILoadOptionsFunctions
-    | IPollFunctions,
-  method: string,
-  endpoint: string,
-  body: object,
-  query?: IDataObject,
-  uri?: string,
-  option: IDataObject = {}
+	this:
+		| IHookFunctions
+		| IExecuteFunctions
+		| ILoadOptionsFunctions
+		| IPollFunctions,
+	method: string,
+	endpoint: string,
+	body: object,
+	query?: IDataObject,
+	uri?: string,
+	option: IDataObject = {},
+// tslint:disable-next-line: no-any
 ): Promise<any> {
-  // tslint:disable-line:no-any
-  const credentials = this.getCredentials('baserowApi');
-  const host = this.getNodeParameter('host', 0) as string;
+	const credentials = this.getCredentials('baserowApi');
+	const host = this.getNodeParameter('host', 0) as string;
 
-  if (credentials === undefined) {
-    throw new NodeOperationError(
-      this.getNode(),
-      'No credentials got returned!'
-    );
-  }
+	if (credentials === undefined) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'No credentials got returned!',
+		);
+	}
 
-  query = query || {};
+	query = query || {};
 
-  const options: OptionsWithUri = {
-    headers: {
-      authorization: `Token ${credentials.apiToken}`,
-    },
-    method,
-    body,
-    qs: query,
-    uri: uri || `${host}${endpoint}`,
-    useQuerystring: false,
-    json: true,
-  };
+	const options: OptionsWithUri = {
+		headers: {
+			authorization: `Token ${credentials.apiToken}`,
+		},
+		method,
+		body,
+		qs: query,
+		uri: uri || `${host}${endpoint}`,
+		useQuerystring: false,
+		json: true,
+	};
 
-  // Allow to manually extend options
-  if (Object.keys(option).length !== 0) {
-    Object.assign(options, option);
-  }
+	// Allow to manually extend options
+	if (Object.keys(option).length !== 0) {
+		Object.assign(options, option);
+	}
 
-  // Remove an empty body
-  if (Object.keys(body).length === 0) {
-    delete options.body;
-  }
+	// Remove an empty body
+	if (Object.keys(body).length === 0) {
+		delete options.body;
+	}
 
-  try {
-    return await this.helpers.request!(options);
-  } catch (error) {
-    throw new NodeApiError(this.getNode(), error);
-  }
+	try {
+		return await this.helpers.request!(options);
+	} catch (error) {
+		throw new NodeApiError(this.getNode(), error);
+	}
 }
 
 /**
@@ -101,40 +100,40 @@ export async function apiRequest(
  * @returns result list.
  */
 export async function apiRequestAllItems(
-  this: IHookFunctions | IExecuteFunctions | IPollFunctions,
-  method: string,
-  endpoint: string,
-  body: IDataObject,
-  query?: IDataObject,
-  limit = 0
+	this: IHookFunctions | IExecuteFunctions | IPollFunctions,
+	method: string,
+	endpoint: string,
+	body: IDataObject,
+	query?: IDataObject,
+	limit = 0,
 ): Promise<IDataObject[]> {
-  if (query === undefined) {
-    query = {};
-  }
-  query.size = query.size || 100;
-  query.page = 1;
+	if (query === undefined) {
+		query = {};
+	}
+	query.size = query.size || 100;
+	query.page = 1;
 
-  let remaining = limit;
+	let remaining = limit;
 
-  const returnData: IDataObject[] = [];
+	const returnData: IDataObject[] = [];
 
-  let responseData;
+	let responseData;
 
-  do {
-    responseData = await apiRequest.call(this, method, endpoint, body, query);
+	do {
+		responseData = await apiRequest.call(this, method, endpoint, body, query);
 
-    if (limit > 0) {
-      // We limit the result size
-      if (responseData.results.length > remaining) {
-        responseData.results = responseData.results.slice(0, remaining);
-      }
-      remaining -= responseData.results.length;
-    }
+		if (limit > 0) {
+			// We limit the result size
+			if (responseData.results.length > remaining) {
+				responseData.results = responseData.results.slice(0, remaining);
+			}
+			remaining -= responseData.results.length;
+		}
 
-    returnData.push.apply(returnData, responseData.results);
+		returnData.push.apply(returnData, responseData.results);
 
-    query.page += 1;
-  } while (responseData.next !== undefined && remaining > 0);
+		query.page += 1;
+	} while (responseData.next !== undefined && remaining > 0);
 
-  return returnData;
+	return returnData;
 }
